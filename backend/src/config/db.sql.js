@@ -1,18 +1,23 @@
-import pkg from 'pg';
-import dotenv from 'dotenv';
+import pkg from "pg";
+import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config(); // 👈 asegúrate de cargar .env aquí también
 const { Pool } = pkg;
 
 const pool = new Pool({
-  connectionString: process.env.PG_URI,
-  ssl: {
-    rejectUnauthorized: false // Railway Postgres usa SSL
-  }
+  connectionString: process.env.DATABASE_URL, // 👈 usa la URL de Railway
+  ssl: { rejectUnauthorized: false },
 });
 
-pool.connect()
-  .then(() => console.log("✅ Conectado a PostgreSQL en Railway"))
-  .catch(err => console.error("❌ Error en PostgreSQL:", err));
+console.log("🔎 PostgreSQL URL:", process.env.DATABASE_URL);
 
-export default pool;
+const connectPostgres = async () => {
+  try {
+    await pool.connect();
+    console.log("✅ Conectado a PostgreSQL en Railway");
+  } catch (err) {
+    console.error("❌ Error en PostgreSQL:", err);
+  }
+};
+
+export { pool, connectPostgres };

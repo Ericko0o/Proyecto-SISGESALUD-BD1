@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "./config/db.sql.js";
+import { pool, connectPostgres } from "./config/db.sql.js"; // 👈 import con nombre
 import connectMongo from "./config/db.mongo.js";
 
 dotenv.config();
@@ -12,8 +12,8 @@ app.use(cors());
 app.use(express.json());
 
 // Conectar DBs
-connectMongo();
-pool.connect().catch(err => console.error(err));
+connectMongo();        // conexión MongoDB
+connectPostgres();     // conexión PostgreSQL
 
 // Rutas de prueba
 app.get("/", (req, res) => {

@@ -1,15 +1,17 @@
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-
-dotenv.config();
+import mongoose from 'mongoose';
 
 const connectMongo = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("✅ Conectado a MongoDB Atlas");
+    const mongoUri = process.env.MONGO_URL;
+    console.log("🔗 Intentando conectar a Mongo con:", mongoUri ? "OK" : "undefined");
+
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    console.log("✅ Conectado a MongoDB en Railway");
   } catch (error) {
     console.error("❌ Error conectando a MongoDB:", error.message);
-    process.exit(1);
   }
 };
 

@@ -28,8 +28,10 @@ dist-ssr/
 *.env
 
 # Archivos de entorno
-.env.local
+.env.*
+.env.dev
 .env.railway
+
 
 # Build
 backend/src/**/*.compiled.js

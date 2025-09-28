@@ -13,6 +13,11 @@ function App() {
       >
         Ir a Demo 🚑
       </Link>
+
+      {/* 👇 Aquí debug visual */}
+      <p className="text-white mt-4 text-sm">
+        🔗 Backend en uso: {import.meta.env.VITE_API_URL}
+      </p>
     </div>
   );
 }

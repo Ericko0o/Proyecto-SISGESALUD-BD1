@@ -5,15 +5,18 @@ function Demo() {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 👉 Usar variable de entorno
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Llamar a PostgreSQL
-        const resDoctores = await fetch("http://localhost:4000/api/demo/doctores");
+        // Llamar a PostgreSQL (doctores)
+        const resDoctores = await fetch(`${API_URL}/demo/doctores`);
         const dataDoctores = await resDoctores.json();
 
-        // Llamar a MongoDB
-        const resCitas = await fetch("http://localhost:4000/api/demo/citas");
+        // Llamar a MongoDB (citas)
+        const resCitas = await fetch(`${API_URL}/demo/citas`);
         const dataCitas = await resCitas.json();
 
         setDoctores(dataDoctores);
@@ -26,7 +29,7 @@ function Demo() {
     };
 
     fetchData();
-  }, []);
+  }, [API_URL]);
 
   if (loading) {
     return <p className="text-center text-white mt-10">Cargando datos...</p>;

@@ -1,14 +1,13 @@
 import { NavLink } from "react-router-dom";
 import { HeartPulse } from "lucide-react";
-import { NAV_PATIENT, NAV_DOCTOR } from "../lib/roleConfig";
+import { NAV_PATIENT, NAV_DOCTOR, NAV_PHARMACY } from "../lib/roleConfig";
 
 export default function Sidebar({ role = "patient" }) {
   const items =
-    role === "patient"
-      ? NAV_PATIENT
-      : role === "doctor"
-      ? NAV_DOCTOR
-      : [];
+    role === "patient" ? NAV_PATIENT :
+    role === "doctor" ? NAV_DOCTOR :
+    role === "pharmacy" ? NAV_PHARMACY :
+    [];
 
   return (
     <aside className="w-64 h-screen bg-white/10 backdrop-blur-xl border-r border-white/20 p-4 flex flex-col">

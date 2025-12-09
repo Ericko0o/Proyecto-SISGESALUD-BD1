@@ -22,6 +22,12 @@ import DoctorAgenda from "./doctor/Agenda.jsx";
 import DoctorConsultation from "./doctor/Consultation.jsx";
 import DoctorPatients from "./doctor/Patients.jsx";
 
+// FARMACIA
+import PharmacyDashboardHome from "./pharmacy/PharmacyDashboardHome.jsx";
+import PharmacyPrescriptions from "./pharmacy/Prescriptions.jsx";
+import PharmacyHistory from "./pharmacy/History.jsx";
+
+
 export default function App() {
   return (
     <Routes>
@@ -51,6 +57,16 @@ export default function App() {
         <Route path="atender" element={<DoctorConsultation />} />
         <Route path="pacientes" element={<DoctorPatients />} />
       </Route>
+
+      {/* --------------------- FARMACIA ---------------------- */}
+      <Route path="/pharmacy/*" element={<DashboardLayout role="pharmacy" />}>
+        <Route index element={<PharmacyDashboardHome />} />
+        <Route path="inicio" element={<PharmacyDashboardHome />} />
+        <Route path="recetas" element={<PharmacyPrescriptions />} />
+        <Route path="historial" element={<PharmacyHistory />} />
+      </Route>
+
+
 
       {/* --------------------- FALLBACK ---------------------- */}
       <Route path="*" element={<Navigate to="/" replace />} />

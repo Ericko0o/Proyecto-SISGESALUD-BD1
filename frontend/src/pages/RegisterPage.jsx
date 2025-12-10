@@ -1,79 +1,6 @@
 // ============================================================================
-// RegisterPage.jsx  —  Vite + React Router + Tailwind
-// Llama al backend SQL (Node/Express) usando VITE_API_URL
-// ----------------------------------------------------------------------------
-// ⬇️ BACKEND (agrega esto para registrar usuarios)
-// 1) Ruta: backend/src/routes/authRoutes.js
-//    import express from "express";
-//    import { register } from "../controllers/authController.js";
-//    const router = express.Router();
-//    router.post("/register", register);
-//    export default router;
-//    // (Ya en LoginPage.jsx añadimos el POST /login en el mismo archivo)
-//
-// 2) Controller: backend/src/controllers/authController.js
-//    import { createUser, findUserByEmail } from "../models/userModel.sql.js";
-//    import jwt from "jsonwebtoken";
-//    export const register = async (req, res) => {
-//      try {
-//        const { nombre, dni, nacimiento, genero, email, password } = req.body;
-//        const exists = await findUserByEmail(email);
-//        if (exists) return res.status(409).json({ error: "Correo ya registrado" });
-//
-//        // Rol por defecto: Paciente (id_rol = 1) — ajusta si difiere en tu tabla
-//        const id_rol_por_defecto = 1;
-//
-//        const user = await createUser({
-//          nombre,
-//          dni,
-//          nacimiento,
-//          genero,
-//          email,
-//          password, // ⚠️ En producción: hashear (bcrypt)
-//          id_rol: id_rol_por_defecto,
-//        });
-//
-//        const token = jwt.sign(
-//          { id_usuario: user.id_usuario, id_rol: user.id_rol },
-//          process.env.JWT_SECRET || "dev-secret",
-//          { expiresIn: "8h" }
-//        );
-//
-//        res.status(201).json({
-//          message: "Usuario creado",
-//          token,
-//          user: {
-//            id_usuario: user.id_usuario,
-//            nombre: user.nombre,
-//            email: user.email,
-//            id_rol: user.id_rol,
-//          },
-//        });
-//      } catch (e) {
-//        res.status(500).json({ error: e.message });
-//      }
-//    };
-//
-// 3) Modelo: backend/src/models/userModel.sql.js
-//    import { pool } from "../config/db.sql.js";
-//    export const createUser = async (u) => {
-//      const q = `INSERT INTO usuarios
-//                 (nombre, dni, nacimiento, genero, email, password, id_rol)
-//                 VALUES ($1,$2,$3,$4,$5,$6,$7)
-//                 RETURNING id_usuario, nombre, email, id_rol`;
-//      const vals = [u.nombre, u.dni, u.nacimiento, u.genero, u.email, u.password, u.id_rol];
-//      const { rows } = await pool.query(q, vals);
-//      return rows[0];
-//    };
-//    export const findUserByEmail = async (email) => {
-//      const { rows } = await pool.query(
-//        "SELECT * FROM usuarios WHERE email = $1 LIMIT 1",
-//        [email]
-//      );
-//      return rows[0];
-//    };
-//
-// 4) Index del server (ya mostrado): app.use("/api/auth", authRoutes);
+// RegisterPage.jsx — Vite + React Router + Tailwind
+// SISTEMA REAL DE AUTENTICACIÓN (SQL + Node/Express)
 // ============================================================================
 
 import { useState } from "react";
@@ -90,8 +17,11 @@ export default function RegisterPage() {
     email: "",
     password: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+  // URL del backend (ej: http://localhost:4000/api)
   const API = import.meta.env.VITE_API_URL;
 
   const onChange = (e) =>
@@ -101,22 +31,30 @@ export default function RegisterPage() {
     e.preventDefault();
     setErr("");
     setLoading(true);
+
     try {
       const res = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Error al registrar");
 
-      // Si quieres loguear automáticamente después de registrar:
+      // 🔥 Guardar token + usuario
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirige al login si prefieres pedir login manual:
-      // navigate("/login"); return;
-      navigate("/app");
+      // 🔥 Redirección según rol
+      // id_rol:
+      // 1 = Paciente
+      // 2 = Doctor
+      // 3 = Admin
+      if (data.user.id_rol === 1) navigate("/patient/inicio");
+      else if (data.user.id_rol === 2) navigate("/doctor/inicio");
+      else if (data.user.id_rol === 3) navigate("/admin/inicio");
+      else navigate("/app");
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -202,6 +140,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          {/* EMAIL + PASSWORD */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -235,12 +174,14 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          {/* ERRORES */}
           {err && (
             <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-md px-3 py-2">
               {err}
             </p>
           )}
 
+          {/* BOTÓN */}
           <button
             type="submit"
             disabled={loading}

@@ -16,12 +16,24 @@ const Cita = mongoose.model("Cita", CitaSchema);
 // --- Endpoint PostgreSQL ---
 router.get("/doctores", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM doctores");
+    const query = `
+      SELECT 
+        d.id_doctor AS id,
+        CONCAT(d.nombres, ' ', d.apellidos) AS nombre,
+        e.nombre AS especialidad
+      FROM doctores d
+      LEFT JOIN especialidades e
+      ON d.id_especialidad = e.id_especialidad
+      ORDER BY d.nombres;
+    `;
+
+    const result = await pool.query(query);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // --- Endpoint MongoDB ---
 router.get("/citas", async (req, res) => {

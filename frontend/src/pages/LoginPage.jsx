@@ -1,57 +1,6 @@
 // ============================================================================
-// LoginPage.jsx  —  Vite + React Router + Tailwind
-// Llama al backend SQL (Node/Express) usando VITE_API_URL
-// ----------------------------------------------------------------------------
-// ⬇️ BACKEND (agrega esto en tu server para que funcione este frontend)
-// 1) Ruta: backend/src/routes/authRoutes.js
-//    import express from "express";
-//    import { login } from "../controllers/authController.js";
-//    const router = express.Router();
-//    router.post("/login", login);
-//    export default router;
-//
-// 2) Controller: backend/src/controllers/authController.js
-//    import { findUserByEmail } from "../models/userModel.sql.js";
-//    import jwt from "jsonwebtoken"; // npm i jsonwebtoken
-//    export const login = async (req, res) => {
-//      const { email, password } = req.body;
-//      try {
-//        const user = await findUserByEmail(email);
-//        if (!user) return res.status(401).json({ error: "Credenciales inválidas" });
-//        // ⚠️ En producción usa hash (bcrypt). Ahora es simple por demo:
-//        if (user.password !== password) return res.status(401).json({ error: "Credenciales inválidas" });
-//        const token = jwt.sign(
-//          { id_usuario: user.id_usuario, id_rol: user.id_rol },
-//          process.env.JWT_SECRET || "dev-secret",
-//          { expiresIn: "8h" }
-//        );
-//        res.json({
-//          token,
-//          user: {
-//            id_usuario: user.id_usuario,
-//            nombre: user.nombre,
-//            email: user.email,
-//            id_rol: user.id_rol,
-//          },
-//        });
-//      } catch (e) {
-//        res.status(500).json({ error: e.message });
-//      }
-//    };
-//
-// 3) Modelo: backend/src/models/userModel.sql.js
-//    import { pool } from "../config/db.sql.js";
-//    export const findUserByEmail = async (email) => {
-//      const q = `SELECT id_usuario, nombre, email, password, id_rol
-//                 FROM usuarios WHERE email = $1 LIMIT 1`;
-//      const { rows } = await pool.query(q, [email]);
-//      return rows[0];
-//    };
-//
-// 4) Index del server: backend/src/index.js
-//    import authRoutes from "./routes/authRoutes.js";
-//    app.use("/api/auth", authRoutes);
-//
+// LoginPage.jsx — Vite + React Router + Tailwind
+// Ahora 100% compatible con el backend actualizado (bcrypt + JWT + roles).
 // ============================================================================
 
 import { useState } from "react";
@@ -64,7 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const API = import.meta.env.VITE_API_URL; // ej. http://localhost:4000/api
+  const API = import.meta.env.VITE_API_URL; // ej: http://localhost:4000/api
 
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -73,22 +22,41 @@ export default function LoginPage() {
     e.preventDefault();
     setErr("");
     setLoading(true);
+
     try {
       const res = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Error de login");
 
-      // Guarda token y usuario (simple). En producción: httpOnly cookie.
+      // Guardar token y usuario
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirección simple. Si quieres por rol:
-      // if (data.user.id_rol === 2) navigate("/app/doctor"); else navigate("/app");
-      navigate("/app");
+      // Redirección según el rol
+      switch (data.user.id_rol) {
+        case 1: // Paciente
+          navigate("/patient/inicio");
+          break;
+        case 2: // Doctor
+          navigate("/doctor/inicio");
+          break;
+        case 3: // Admin
+          navigate("/admin/inicio");
+          break;
+        case 4: // Farmacia
+          navigate("/farmacia/inicio");
+          break;
+        case 5: // Laboratorio
+          navigate("/lab/inicio");
+          break;
+        default:
+          navigate("/app");
+      }
     } catch (e) {
       setErr(e.message);
     } finally {

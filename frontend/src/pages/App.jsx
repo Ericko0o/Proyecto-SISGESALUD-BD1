@@ -7,8 +7,10 @@ import RegisterPage from "./RegisterPage.jsx";
 import Demo from "./Demo.jsx";
 import AppHome from "./App.jsx";
 
-// PACIENTE
+// LAYOUT GENERAL
 import DashboardLayout from "../components/DashboardLayout.jsx";
+
+// PACIENTE
 import PatientDashboardHome from "./patient/DashboardHome.jsx";
 import PatientAppointments from "./patient/Appointments.jsx";
 import PatientDiagnostics from "./patient/Diagnostics.jsx";
@@ -27,6 +29,17 @@ import PharmacyDashboardHome from "./pharmacy/PharmacyDashboardHome.jsx";
 import PharmacyPrescriptions from "./pharmacy/Prescriptions.jsx";
 import PharmacyHistory from "./pharmacy/History.jsx";
 
+// LABORATORIO → SECCIÓN COMPLETA
+import LaboratoryDashboardHome from "./laboratory/DashboardHome.jsx";
+import LaboratoryExams from "./laboratory/Exams.jsx";
+import LaboratoryMyExams from "./laboratory/MyExams.jsx";
+import LaboratoryResults from "./laboratory/Results.jsx";
+
+// CLINICAL ADMIN
+import ClinicalAdminDashboard from "./ClinicalAdminDashboard.jsx";
+import ClinicalAdminPatients from "./clinicalAdmin/Patients.jsx";
+import ClinicalAdminAppointments from "./clinicalAdmin/Appointments.jsx";
+import ClinicalAdminShifts from "./clinicalAdmin/Shifts.jsx";
 
 export default function App() {
   return (
@@ -66,7 +79,23 @@ export default function App() {
         <Route path="historial" element={<PharmacyHistory />} />
       </Route>
 
+      {/* --------------------- LABORATORIO ---------------------- */}
+      <Route path="/laboratory/*" element={<DashboardLayout role="laboratory" />}>
+        <Route index element={<LaboratoryDashboardHome />} />
+        <Route path="inicio" element={<LaboratoryDashboardHome />} />
+        <Route path="examenes" element={<LaboratoryExams />} />
+        <Route path="mis-examenes" element={<LaboratoryMyExams />} />
+        <Route path="resultados" element={<LaboratoryResults />} />
+      </Route>
 
+            {/* --------------------- CLINICAL ADMIN ---------------------- */}
+      <Route path="/clinical-admin/*" element={<DashboardLayout role="clinical-admin" />}>
+        <Route index element={<ClinicalAdminDashboard />} />
+        <Route path="inicio" element={<ClinicalAdminDashboard />} />
+        <Route path="pacientes" element={<ClinicalAdminPatients />} />
+        <Route path="citas" element={<ClinicalAdminAppointments />} />
+        <Route path="turnos" element={<ClinicalAdminShifts />} />
+      </Route>
 
       {/* --------------------- FALLBACK ---------------------- */}
       <Route path="*" element={<Navigate to="/" replace />} />

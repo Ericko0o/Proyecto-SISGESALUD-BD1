@@ -1,3 +1,4 @@
+// src/pages/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Páginas públicas
@@ -29,7 +30,7 @@ import PharmacyDashboardHome from "./pharmacy/PharmacyDashboardHome.jsx";
 import PharmacyPrescriptions from "./pharmacy/Prescriptions.jsx";
 import PharmacyHistory from "./pharmacy/History.jsx";
 
-// LABORATORIO → SECCIÓN COMPLETA
+// LABORATORIO
 import LaboratoryDashboardHome from "./laboratory/DashboardHome.jsx";
 import LaboratoryExams from "./laboratory/Exams.jsx";
 import LaboratoryMyExams from "./laboratory/MyExams.jsx";
@@ -40,6 +41,13 @@ import ClinicalAdminDashboard from "./ClinicalAdminDashboard.jsx";
 import ClinicalAdminPatients from "./clinicalAdmin/Patients.jsx";
 import ClinicalAdminAppointments from "./clinicalAdmin/Appointments.jsx";
 import ClinicalAdminShifts from "./clinicalAdmin/Shifts.jsx";
+
+// ✅ SYSTEM ADMIN (nuevo)
+import SystemAdminDashboard from "./SystemAdminDashboard.jsx";
+import AdminUsers from "./admin/Users.jsx";
+import AdminHospitals from "./admin/Hospitals.jsx";
+import AdminClinicalManagement from "./admin/ClinicalManagement.jsx";
+import AdminReports from "./admin/Reports.jsx";
 
 export default function App() {
   return (
@@ -88,13 +96,23 @@ export default function App() {
         <Route path="resultados" element={<LaboratoryResults />} />
       </Route>
 
-            {/* --------------------- CLINICAL ADMIN ---------------------- */}
+      {/* --------------------- CLINICAL ADMIN ---------------------- */}
       <Route path="/clinical-admin/*" element={<DashboardLayout role="clinical-admin" />}>
         <Route index element={<ClinicalAdminDashboard />} />
         <Route path="inicio" element={<ClinicalAdminDashboard />} />
         <Route path="pacientes" element={<ClinicalAdminPatients />} />
         <Route path="citas" element={<ClinicalAdminAppointments />} />
         <Route path="turnos" element={<ClinicalAdminShifts />} />
+      </Route>
+
+      {/* --------------------- SYSTEM ADMIN (NUEVO) ---------------------- */}
+      <Route path="/admin/*" element={<DashboardLayout role="admin" />}>
+        <Route index element={<SystemAdminDashboard />} />
+        <Route path="inicio" element={<SystemAdminDashboard />} />
+        <Route path="usuarios" element={<AdminUsers />} />
+        <Route path="hospitales" element={<AdminHospitals />} />
+        <Route path="gestion" element={<AdminClinicalManagement />} />
+        <Route path="reportes" element={<AdminReports />} />
       </Route>
 
       {/* --------------------- FALLBACK ---------------------- */}

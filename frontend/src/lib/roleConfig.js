@@ -1,5 +1,4 @@
 // src/lib/roleConfig.js
-
 import {
   CalendarDays,
   UserCheck,
@@ -11,6 +10,9 @@ import {
   Users2,
   CalendarClock,
   LayoutList,
+  Users as UsersIcon,
+  Hospital as HospitalIcon,
+  LineChart,
 } from "lucide-react";
 
 export const ROLES = {
@@ -19,6 +21,7 @@ export const ROLES = {
   PHARMACY: "pharmacy",
   LABORATORY: "laboratory",
   CLINICAL_ADMIN: "clinical-admin",
+  ADMIN: "admin",
 };
 
 /* ----------------------------------------
@@ -70,4 +73,15 @@ export const NAV_CLINICAL_ADMIN = [
   { to: "/clinical-admin/pacientes", label: "Pacientes", icon: Users2 },
   { to: "/clinical-admin/citas", label: "Citas", icon: CalendarClock },
   { to: "/clinical-admin/turnos", label: "Turnos", icon: LayoutList },
+];
+
+/* ----------------------------------------
+ * NAV ADMIN SISTEMA
+ * ----------------------------------------*/
+export const NAV_ADMIN = [
+  { to: "/admin/inicio", label: "Inicio", icon: Home },
+  { to: "/admin/usuarios", label: "Usuarios", icon: UsersIcon },
+  { to: "/admin/hospitales", label: "Hospitales", icon: HospitalIcon },
+  { to: "/admin/gestion", label: "Gestión Clínica", icon: LayoutList },
+  { to: "/admin/reportes", label: "Reportes", icon: LineChart },
 ];

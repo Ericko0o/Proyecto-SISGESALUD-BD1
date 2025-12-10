@@ -1,6 +1,14 @@
+// src/components/Sidebar.jsx
 import { NavLink } from "react-router-dom";
 import { HeartPulse } from "lucide-react";
-import { NAV_PATIENT, NAV_DOCTOR, NAV_PHARMACY, NAV_LABORATORY, NAV_CLINICAL_ADMIN } from "../lib/roleConfig";
+import {
+  NAV_PATIENT,
+  NAV_DOCTOR,
+  NAV_PHARMACY,
+  NAV_LABORATORY,
+  NAV_CLINICAL_ADMIN,
+  NAV_ADMIN,                 // 👈 nuevo
+} from "../lib/roleConfig";
 
 export default function Sidebar({ role = "patient" }) {
   const items =
@@ -9,6 +17,7 @@ export default function Sidebar({ role = "patient" }) {
     role === "pharmacy" ? NAV_PHARMACY :
     role === "laboratory" ? NAV_LABORATORY :
     role === "clinical-admin" || role === "clinicalAdmin" ? NAV_CLINICAL_ADMIN :
+    role === "admin" ? NAV_ADMIN :                        // 👈 nuevo
     [];
 
   return (

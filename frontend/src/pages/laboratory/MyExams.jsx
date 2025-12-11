@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useMockExams } from "../../hooks/use-mock-exams";
+import { useState, useEffect } from "react";
 import { Clock, FileUp, FileText } from "lucide-react";
 import ResultUploadForm from "./ResultUploadForm.jsx";
 import PatientHistoryDialog from "./PatientHistoryDialog.jsx";
@@ -7,14 +6,19 @@ import PatientHistoryDialog from "./PatientHistoryDialog.jsx";
 const loggedUser = "Lab-Analista-Demo";
 
 export default function MyExams() {
-  const { exams } = useMockExams();
-  const working = exams.filter(
-    (e) => e.technician === loggedUser && e.status === "in-progress"
-  );
-
+  const [working, setWorking] = useState([]);
   const [selectedExam, setSelectedExam] = useState(null);
   const [openForm, setOpenForm] = useState(false);
   const [openHistory, setOpenHistory] = useState(false);
+
+  const loadMyExams = () => {
+    fetch(`http://localhost:3000/api/lab/exams/my?technician=${loggedUser}`)
+      .then((res) => res.json())
+      .then((data) => setWorking(data))
+      .catch(console.error);
+  };
+
+  useEffect(loadMyExams, []);
 
   return (
     <>
@@ -24,7 +28,7 @@ export default function MyExams() {
         <table className="w-full text-left">
           <thead>
             <tr className="border-b text-gray-300 text-sm">
-              <th className="py-2">Examen</th>
+              <th>Examen</th>
               <th>Paciente</th>
               <th>DNI</th>
               <th>Estado</th>
@@ -39,7 +43,6 @@ export default function MyExams() {
                   <td className="py-3">{exam.examType}</td>
                   <td>{exam.patientName}</td>
                   <td>{exam.patientDni}</td>
-
                   <td>
                     <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-md border border-blue-300 flex items-center gap-1 w-fit">
                       <Clock className="w-3 h-3" />
@@ -49,7 +52,7 @@ export default function MyExams() {
 
                   <td className="text-right space-x-3 py-3">
                     <button
-                      className="px-3 py-2 rounded-md border border-white/30 hover:bg-white/10 transition"
+                      className="px-3 py-2 border border-white/30 hover:bg-white/10 transition"
                       onClick={() => {
                         setSelectedExam(exam);
                         setOpenHistory(true);
@@ -60,7 +63,7 @@ export default function MyExams() {
                     </button>
 
                     <button
-                      className="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                      className="px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 transition"
                       onClick={() => {
                         setSelectedExam(exam);
                         setOpenForm(true);
@@ -74,10 +77,7 @@ export default function MyExams() {
               ))
             ) : (
               <tr>
-                <td
-                  colSpan="5"
-                  className="py-8 text-center text-gray-400"
-                >
+                <td colSpan="5" className="py-8 text-center text-gray-400">
                   No tienes exámenes asignados.
                 </td>
               </tr>
@@ -87,17 +87,11 @@ export default function MyExams() {
       </div>
 
       {openForm && (
-        <ResultUploadForm
-          exam={selectedExam}
-          close={() => setOpenForm(false)}
-        />
+        <ResultUploadForm exam={selectedExam} close={() => setOpenForm(false)} refresh={loadMyExams} />
       )}
 
       {openHistory && (
-        <PatientHistoryDialog
-          exam={selectedExam}
-          close={() => setOpenHistory(false)}
-        />
+        <PatientHistoryDialog exam={selectedExam} close={() => setOpenHistory(false)} />
       )}
     </>
   );

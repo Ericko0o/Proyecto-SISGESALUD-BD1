@@ -1,17 +1,23 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search } from "lucide-react";
-import { useMockExams } from "../../hooks/use-mock-exams";
 
 export default function Results() {
-  const { exams } = useMockExams();
   const [query, setQuery] = useState("");
+  const [exams, setExams] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:4000/api/lab/search")
+      .then((res) => res.json())
+      .then((data) => setExams(data))
+      .catch(console.error);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return exams.filter(
       (e) =>
-        e.patientName.toLowerCase().includes(q) ||
-        e.examType.toLowerCase().includes(q) ||
+        e.patientName?.toLowerCase().includes(q) ||
+        e.tipo_examen?.toLowerCase().includes(q) ||
         (e.technician && e.technician.toLowerCase().includes(q))
     );
   }, [query, exams]);
@@ -43,23 +49,22 @@ export default function Results() {
 
         <tbody>
           {filtered.map((exam) => (
-            <tr key={exam.id} className="border-b last:border-0">
-              <td className="py-3">{exam.examType}</td>
-              <td>{exam.patientName}</td>
+            <tr key={exam.id_examen} className="border-b last:border-0">
+              <td className="py-3">{exam.tipo_examen}</td>
+              <td>{exam.patient_name}</td>
               <td>{exam.technician || "No asignado"}</td>
               <td>
-                {exam.status === "completed" ? (
+                {exam.estado === "completed" ? (
                   <span className="text-green-500">Completado</span>
-                ) : exam.status === "in-progress" ? (
+                ) : exam.estado === "in-progress" ? (
                   <span className="text-blue-400">En Proceso</span>
                 ) : (
                   <span className="text-gray-400">Pendiente</span>
                 )}
               </td>
-
               <td className="text-right">
                 <button
-                  disabled={exam.status !== "completed"}
+                  disabled={exam.estado !== "completed"}
                   className="text-blue-500 disabled:text-gray-400"
                 >
                   Ver PDF

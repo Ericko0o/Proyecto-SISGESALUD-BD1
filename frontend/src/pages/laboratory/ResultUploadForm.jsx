@@ -1,18 +1,22 @@
-import { useMockExams } from "../../hooks/use-mock-exams";
 import { useState } from "react";
 
-export default function ResultUploadForm({ exam, close }) {
-  const { completeExam } = useMockExams();
+export default function ResultUploadForm({ exam, close, refresh }) {
   const [file, setFile] = useState(null);
   const [notes, setNotes] = useState("");
 
-  const submit = () => {
-    if (!file) {
-      alert("Debes subir un archivo PDF.");
-      return;
-    }
+  const submit = async () => {
+    if (!file) return alert("Debes subir un archivo PDF.");
 
-    completeExam(exam.id);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("notes", notes);
+
+    await fetch(`http://localhost:3000/api/lab/exams/${exam.id}/upload-result`, {
+      method: "POST",
+      body: formData,
+    });
+
+    refresh();
     close();
   };
 
@@ -42,17 +46,11 @@ export default function ResultUploadForm({ exam, close }) {
         </div>
 
         <div className="flex justify-end gap-3 mt-4">
-          <button
-            className="px-4 py-2 border rounded-md"
-            onClick={close}
-          >
+          <button className="px-4 py-2 border rounded-md" onClick={close}>
             Cancelar
           </button>
 
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
-            onClick={submit}
-          >
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-md" onClick={submit}>
             Subir y Finalizar
           </button>
         </div>

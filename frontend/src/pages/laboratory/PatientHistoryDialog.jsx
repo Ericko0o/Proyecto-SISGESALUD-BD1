@@ -7,11 +7,13 @@ export default function PatientHistoryDialog({ exam, close }) {
         <h2 className="text-xl font-bold mb-2">
           Historial Clínico — {exam.patientName}
         </h2>
+
         <p className="text-sm text-gray-600 mb-4">
           DNI: {exam.patientDni}
         </p>
 
-        <MedicalHistory />
+        {/* Importante: pasar el DNI al componente */}
+        <MedicalHistory patientDni={exam.patientDni} />
 
         <div className="flex justify-end mt-4">
           <button

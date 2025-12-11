@@ -2,7 +2,6 @@
 import pkg from "pg";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-const { Client } = pkg;
 dotenv.config();
 
 const { Pool } = pkg;

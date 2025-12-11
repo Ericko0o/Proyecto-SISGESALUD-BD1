@@ -1,12 +1,29 @@
-import { useMockExams } from "../../hooks/use-mock-exams";
+import { useEffect, useState } from "react";
 import { UserCheck } from "lucide-react";
 
 const loggedUser = "Lab-Analista-Demo";
 
 export default function Exams() {
-  const { exams, assignExam } = useMockExams();
+  const [pending, setPending] = useState([]);
 
-  const pending = exams.filter((e) => e.status === "pending");
+  const loadPending = () => {
+    fetch("http://localhost:4000/api/lab/pending")
+      .then((res) => res.json())
+      .then((data) => setPending(data))
+      .catch(console.error);
+  };
+
+  useEffect(loadPending, []);
+
+  const assignExam = async (id) => {
+    await fetch(`http://localhost:4000/api/lab/assign`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ examId: id, technician: loggedUser }),
+    });
+
+    loadPending();
+  };
 
   return (
     <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20 shadow">
@@ -24,13 +41,13 @@ export default function Exams() {
 
         <tbody>
           {pending.map((exam) => (
-            <tr key={exam.id} className="border-b last:border-0">
-              <td>{exam.examType}</td>
-              <td>{exam.patientName}</td>
-              <td>{exam.doctor}</td>
+            <tr key={exam.id_examen} className="border-b last:border-0">
+              <td>{exam.tipo_examen}</td>
+              <td>{exam.patient_name}</td>
+              <td>{exam.doctor_name}</td>
               <td className="text-right">
                 <button
-                  onClick={() => assignExam(exam.id, loggedUser)}
+                  onClick={() => assignExam(exam.id_examen)}
                   className="bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center gap-2"
                 >
                   <UserCheck className="w-4 h-4" />

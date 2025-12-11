@@ -1,7 +1,8 @@
 // backend/src/controllers/authController.js
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { findUserByEmail, createUser, findUserById } from "../models/userModel.sql.js";
+import { findUserByEmail, findUserById } from "../models/userModel.sql.js";
+
 import dotenv from "dotenv";
 dotenv.config();
 

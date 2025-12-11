@@ -1,64 +1,79 @@
 // src/pages/admin/Hospitals.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlusCircle } from "lucide-react";
-
 import HospitalForm from "./forms/HospitalForm.jsx";
 import AreaManagementDialog from "./dialogs/AreaManagementDialog.jsx";
-
-const INITIAL = [
-  {
-    id: "HOS01",
-    name: "Hospital Central de Lima",
-    address: "Av. Principal 123, Lima",
-    phone: "987-654-321",
-    areas: [
-      { id: "A1", name: "Emergencias", description: "Atención inmediata" },
-      { id: "A2", name: "Pediatría", description: "Atención infantil" },
-    ],
-  },
-  {
-    id: "HOS02",
-    name: "Clínica San Borja",
-    address: "Calle Las Artes 456, San Borja",
-    phone: "999-888-777",
-    areas: [],
-  },
-];
+import { adminAPI } from "../../services/api";
 
 export default function Hospitals() {
-  const [rows, setRows] = useState(INITIAL);
-
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-
   const [areasModal, setAreasModal] = useState(null);
+
+  // Cargar hospitales al montar el componente
+  useEffect(() => {
+    fetchHospitals();
+  }, []);
+
+  const fetchHospitals = async () => {
+    setLoading(true);
+    try {
+      const hospitals = await adminAPI.getHospitals();
+      setRows(hospitals);
+    } catch (error) {
+      console.error('Error al cargar hospitales:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openAdd = () => {
     setEditing(null);
     setModalOpen(true);
   };
 
-  const openEdit = (h) => {
-    setEditing(h);
+  const openEdit = (hospital) => {
+    setEditing(hospital);
     setModalOpen(true);
   };
 
-  const saveHospital = (data) => {
-    if (editing) {
-      setRows((r) =>
-        r.map((x) => (x.id === editing.id ? { ...x, ...data } : x))
-      );
-    } else {
-      setRows((r) => [
-        ...r,
-        { id: crypto.randomUUID(), areas: [], ...data },
-      ]);
+  const saveHospital = async (data) => {
+    try {
+      if (editing) {
+        await adminAPI.updateHospital(editing.id_hospital, data);
+      } else {
+        await adminAPI.createHospital(data);
+      }
+      
+      await fetchHospitals();
+      setModalOpen(false);
+    } catch (error) {
+      console.error('Error al guardar hospital:', error);
+      alert('Error al guardar el hospital');
     }
-    setModalOpen(false);
   };
 
-  const deleteHospital = (id) =>
-    setRows((r) => r.filter((h) => h.id !== id));
+  const deleteHospital = async (id) => {
+    if (!confirm('¿Está seguro de eliminar este hospital?')) return;
+    
+    try {
+      await adminAPI.deleteHospital(id);
+      await fetchHospitals();
+    } catch (error) {
+      console.error('Error al eliminar hospital:', error);
+      alert('Error al eliminar el hospital');
+    }
+  };
+
+  if (loading && rows.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -85,20 +100,21 @@ export default function Hospitals() {
               <tr className="text-left border-t border-b border-white/10 bg-background/60">
                 <th className="py-3 px-4">Nombre</th>
                 <th className="py-3 px-4">Dirección</th>
-                <th className="py-3 px-4">Teléfono</th>
+                <th className="py-3 px-4">Tipo</th>
                 <th className="py-3 px-4">Áreas</th>
+                <th className="py-3 px-4">Citas</th>
                 <th className="py-3 px-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((h) => (
-                <tr key={h.id} className="border-b border-white/10">
-                  <td className="py-3 px-4">{h.name}</td>
-                  <td className="py-3 px-4">{h.address}</td>
-                  <td className="py-3 px-4">{h.phone}</td>
-                  <td className="py-3 px-4">{h.areas.length}</td>
-
-                  <td className="py-3 px-4 text-right flex gap-2 justify-end">
+                <tr key={h.id_hospital} className="border-b border-white/10">
+                  <td className="py-3 px-4">{h.nombre}</td>
+                  <td className="py-3 px-4">{h.direccion}</td>
+                  <td className="py-3 px-4">{h.tipo}</td>
+                  <td className="py-3 px-4">{h.areas_count || 0}</td>
+                  <td className="py-3 px-4">{h.citas_count || 0}</td>
+                  <td className="py-3 px-4 text-right space-x-2">
                     <button
                       onClick={() => setAreasModal(h)}
                       className="px-2 py-1 text-sm rounded hover:bg-white/5"
@@ -112,7 +128,7 @@ export default function Hospitals() {
                       Editar
                     </button>
                     <button
-                      onClick={() => deleteHospital(h.id)}
+                      onClick={() => deleteHospital(h.id_hospital)}
                       className="px-2 py-1 text-sm rounded text-red-400 hover:bg-red-400/10"
                     >
                       Eliminar
@@ -120,9 +136,9 @@ export default function Hospitals() {
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 && (
+              {rows.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="py-8 text-center text-muted-foreground">
                     No hay hospitales registrados.
                   </td>
                 </tr>
@@ -134,7 +150,7 @@ export default function Hospitals() {
 
       {/* MODAL HOSPITAL */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center p-4 z-50">
           <div className="bg-background p-6 rounded-xl border border-white/10 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-semibold mb-4">
               {editing ? "Editar Hospital" : "Nuevo Hospital"}
@@ -154,12 +170,14 @@ export default function Hospitals() {
         <AreaManagementDialog
           hospital={areasModal}
           onClose={() => setAreasModal(null)}
-          onSave={(newAreas) => {
-            setRows((r) =>
-              r.map((h) =>
-                h.id === areasModal.id ? { ...h, areas: newAreas } : h
-              )
-            );
+          onSave={async (newAreas) => {
+            try {
+              // Aquí necesitarías implementar la lógica para guardar áreas
+              // usando adminAPI.createArea y adminAPI.deleteArea
+              await fetchHospitals();
+            } catch (error) {
+              console.error('Error al guardar áreas:', error);
+            }
           }}
         />
       )}

@@ -1,30 +1,39 @@
 // src/pages/admin/Users.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlusCircle, Search } from "lucide-react";
 import UserForm from "./forms/UserForm.jsx";
-
-const INITIAL = [
-  { id: "DR001", name: "Dr. Alan Grant", email: "doctor@example.com", role: "Doctor", status: "Activo" },
-  { id: "PAT001", name: "Carlos Santana", email: "paciente@example.com", role: "Paciente", status: "Activo" },
-  { id: "FARM01", name: "Farma-Juan", email: "farmacia@example.com", role: "Farmacia", status: "Activo" },
-  { id: "LAB01", name: "Lab-Analista Demo", email: "laboratorio@example.com", role: "Laboratorio", status: "Activo" },
-  { id: "ADM01", name: "Super Admin", email: "admin@example.com", role: "Administrador del Sistema", status: "Activo" },
-  { id: "CADM01", name: "Admin Clínico", email: "clinical-admin@example.com", role: "Administrador Clínico", status: "Activo" },
-];
+import { adminAPI } from "../../services/api";
 
 export default function Users() {
-  const [rows, setRows] = useState(INITIAL);
+  const [rows, setRows] = useState([]);
   const [q, setQ] = useState("");
-  
-  // Modal State
+  const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
+  // Cargar usuarios al montar el componente
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const users = await adminAPI.getUsers();
+      setRows(users);
+    } catch (error) {
+      console.error('Error al cargar usuarios:', error);
+      // Puedes mostrar un mensaje de error al usuario
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filtered = rows.filter(
     (u) =>
-      u.name.toLowerCase().includes(q.toLowerCase()) ||
+      u.nombre.toLowerCase().includes(q.toLowerCase()) ||
       u.email.toLowerCase().includes(q.toLowerCase()) ||
-      u.role.toLowerCase().includes(q.toLowerCase())
+      u.rol_nombre.toLowerCase().includes(q.toLowerCase())
   );
 
   const openAdd = () => {
@@ -37,21 +46,43 @@ export default function Users() {
     setModalOpen(true);
   };
 
-  const saveUser = (data) => {
-    if (editing) {
-      // editar
-      setRows((r) =>
-        r.map((u) => (u.id === editing.id ? { ...u, ...data } : u))
-      );
-    } else {
-      // nuevo
-      setRows((r) => [
-        ...r,
-        { id: crypto.randomUUID(), status: "Activo", ...data },
-      ]);
+  const saveUser = async (userData) => {
+    try {
+      if (editing) {
+        // Editar usuario existente
+        await adminAPI.updateUser(editing.id_usuario, userData);
+      } else {
+        // Crear nuevo usuario
+        await adminAPI.createUser(userData);
+      }
+      
+      // Actualizar la lista
+      await fetchUsers();
+      setModalOpen(false);
+    } catch (error) {
+      console.error('Error al guardar usuario:', error);
+      alert('Error al guardar el usuario');
     }
-    setModalOpen(false);
   };
+
+  const toggleUserStatus = async (userId) => {
+    try {
+      await adminAPI.toggleUserStatus(userId);
+      // Actualizar la lista
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error al cambiar estado:', error);
+      alert('Error al cambiar el estado del usuario');
+    }
+  };
+
+  if (loading && rows.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -67,7 +98,10 @@ export default function Users() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
-              <button className="px-3 py-2 rounded-md border border-white/10 hover:bg-white/5 flex items-center gap-2">
+              <button 
+                className="px-3 py-2 rounded-md border border-white/10 hover:bg-white/5 flex items-center gap-2"
+                onClick={fetchUsers}
+              >
                 <Search className="w-4 h-4" /> Buscar
               </button>
             </div>
@@ -88,50 +122,37 @@ export default function Users() {
                 <th className="py-3 px-4">Nombre</th>
                 <th className="py-3 px-4">Correo</th>
                 <th className="py-3 px-4">Rol</th>
-                <th className="py-3 px-4">Estado</th>
-                <th className="py-3 px-4 text-right">Acciones</th>
+                <th className="py-3 px-4">Tipo</th>
+                <th className="py-3 px-4">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((u) => (
-                <tr key={u.id} className="border-b border-white/10">
-                  <td className="py-3 px-4">{u.name}</td>
+                <tr key={u.id_usuario} className="border-b border-white/10">
+                  <td className="py-3 px-4">{u.nombre}</td>
                   <td className="py-3 px-4">{u.email}</td>
-                  <td className="py-3 px-4">{u.role}</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-1 rounded text-xs bg-green-500/20 text-green-300">
-                      {u.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="py-3 px-4">{u.rol_nombre}</td>
+                  <td className="py-3 px-4">{u.tipo_usuario || 'Usuario'}</td>
+                  <td className="py-3 px-4 space-x-2">
                     <button
                       className="px-2 py-1 text-sm rounded hover:bg-white/5"
                       onClick={() => openEdit(u)}
                     >
                       Editar
                     </button>
-                    <button className="px-2 py-1 text-sm rounded hover:bg-white/5">
-                      Cambiar Rol
-                    </button>
                     <button
                       className="px-2 py-1 text-sm rounded text-red-400 hover:bg-red-400/10"
-                      onClick={() =>
-                        setRows((r) =>
-                          r.map((x) =>
-                            x.id === u.id ? { ...x, status: "Inactivo" } : x
-                          )
-                        )
-                      }
+                      onClick={() => toggleUserStatus(u.id_usuario)}
                     >
-                      Desactivar
+                      {u.activo === false ? 'Activar' : 'Desactivar'}
                     </button>
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {filtered.length === 0 && !loading && (
                 <tr>
                   <td className="py-8 px-4 text-center text-muted-foreground" colSpan={5}>
-                    Sin resultados…
+                    {q ? 'No se encontraron usuarios' : 'No hay usuarios registrados'}
                   </td>
                 </tr>
               )}
@@ -142,7 +163,7 @@ export default function Users() {
 
       {/* MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center p-4 z-50">
           <div className="bg-background p-6 rounded-xl border border-white/10 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-semibold mb-4">
               {editing ? "Editar Usuario" : "Nuevo Usuario"}
